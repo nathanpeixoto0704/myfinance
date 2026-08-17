@@ -1,46 +1,202 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Teste do Repositório</title>
-
-    <style>
-        body {
-            margin: 0;
-            font-family: Arial, Helvetica, sans-serif;
-            background: #f4f4f4;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-        }
-
-        .card {
-            background: white;
-            padding: 40px;
-            border-radius: 12px;
-            box-shadow: 0 4px 15px rgba(0,0,0,.15);
-            text-align: center;
-        }
-
-        h1 {
-            color: #2c7be5;
-            margin-bottom: 10px;
-        }
-
-        p {
-            color: #555;
-        }
-    </style>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Livro de Compras</title>
+<link rel="stylesheet" href="styles.css" />
 </head>
 <body>
+  <div class="wrap">
+    <header class="top">
+      <div>
+        <h1>Livro de Compras</h1>
+        <p>Controle de gastos por conta, cartão e parcela</p>
+      </div>
+      <div class="ledger-total">
+        <span class="label">Total lançado</span>
+        <span class="amount" id="total-amount">R$ 0,00</span>
+      </div>
+    </header>
 
-    <div class="card">
-        <h1>🚀 Repositório Online!</h1>
-        <p>Se você está vendo esta página, seu repositório foi publicado com sucesso.</p>
-        <p><strong>Teste realizado com sucesso.</strong></p>
+    <div id="config-alert" class="config-alert" hidden>
+      <strong>Configuração pendente.</strong> Abra o arquivo <code>config.js</code> e preencha
+      <code>SUPABASE_URL</code> e <code>SUPABASE_ANON_KEY</code> com os dados do seu projeto
+      Supabase (Project Settings → API). Veja o <code>README.md</code> para o passo a passo completo.
     </div>
 
+    <div id="app-content">
+      <section class="card">
+        <h2>Novo registro <span class="tag">insert</span></h2>
+        <form id="record-form">
+          <div class="field">
+            <label for="conta">Conta</label>
+            <input id="conta" name="conta" type="text" placeholder="Ex: Nubank" required />
+          </div>
+          <div class="field">
+            <label for="tipo">Tipo</label>
+            <input id="tipo" name="tipo" type="text" placeholder="Ex: Crédito, Débito, Pix" list="tipo-list" />
+            <datalist id="tipo-list">
+              <option value="Crédito"></option>
+              <option value="Débito"></option>
+              <option value="Pix"></option>
+              <option value="Boleto"></option>
+            </datalist>
+          </div>
+          <div class="field">
+            <label for="data_compra">Data da compra</label>
+            <input id="data_compra" name="data_compra" type="date" />
+          </div>
+          <div class="field">
+            <label for="forma_pagamento">Forma de pagamento</label>
+            <input id="forma_pagamento" name="forma_pagamento" type="text" placeholder="Ex: Cartão final 1234" />
+          </div>
+
+          <div class="field">
+            <label for="parcelas_total">Total de parcelas</label>
+            <input id="parcelas_total" name="parcelas_total" type="number" min="1" placeholder="1" />
+          </div>
+          <div class="field">
+            <label for="parcela_atual">Parcela atual</label>
+            <input id="parcela_atual" name="parcela_atual" type="number" min="1" placeholder="1" />
+          </div>
+          <div class="field">
+            <label for="categoria">Categoria</label>
+            <input id="categoria" name="categoria" type="text" placeholder="Ex: Alimentação" />
+          </div>
+          <div class="field">
+            <label for="sub_categoria">Subcategoria</label>
+            <input id="sub_categoria" name="sub_categoria" type="text" placeholder="Ex: Restaurante" />
+          </div>
+
+          <div class="field span-2">
+            <label for="descricao">Descrição</label>
+            <input id="descricao" name="descricao" type="text" placeholder="Ex: Jantar com a família" />
+          </div>
+          <div class="field">
+            <label for="data_pagamento">Data de pagamento</label>
+            <input id="data_pagamento" name="data_pagamento" type="date" />
+          </div>
+          <div class="field">
+            <label for="valor">Valor (R$)</label>
+            <input id="valor" name="valor" type="number" step="0.01" placeholder="0.00" />
+          </div>
+
+          <div class="field span-2">
+            <label for="confirmacao">Confirmação</label>
+            <input id="confirmacao" name="confirmacao" type="text" placeholder="Confirmado / Pendente" list="conf-list" />
+            <datalist id="conf-list">
+              <option value="Confirmado"></option>
+              <option value="Pendente"></option>
+            </datalist>
+          </div>
+
+          <div class="form-actions">
+            <button type="submit" class="btn-primary">Adicionar registro</button>
+            <span id="form-status"></span>
+          </div>
+        </form>
+      </section>
+
+      <section>
+        <div class="table-toolbar">
+          <h2 style="font-family:'Fraunces',serif; font-size:19px; margin:0;">Registros</h2>
+          <input type="search" id="search-input" placeholder="Buscar em qualquer campo..." />
+        </div>
+
+        <div class="table-scroll">
+          <table>
+            <thead>
+              <tr>
+                <th>Conta</th>
+                <th>Tipo</th>
+                <th>Data compra</th>
+                <th>Pagamento</th>
+                <th>Parcela</th>
+                <th>Categoria</th>
+                <th>Subcategoria</th>
+                <th>Descrição</th>
+                <th>Data pagto.</th>
+                <th>Valor</th>
+                <th>Confirmação</th>
+                <th>Ações</th>
+              </tr>
+            </thead>
+            <tbody id="table-body"></tbody>
+          </table>
+          <div class="empty-state" id="empty-state" hidden>Nenhum registro encontrado.</div>
+        </div>
+      </section>
+    </div>
+  </div>
+
+  <!-- Modal de edição -->
+  <div class="modal-overlay" id="modal-overlay" hidden>
+    <div class="modal">
+      <h2>Editar registro</h2>
+      <form id="edit-form">
+        <div class="field">
+          <label for="e_conta">Conta</label>
+          <input id="e_conta" name="conta" type="text" required />
+        </div>
+        <div class="field">
+          <label for="e_tipo">Tipo</label>
+          <input id="e_tipo" name="tipo" type="text" />
+        </div>
+        <div class="field">
+          <label for="e_data_compra">Data da compra</label>
+          <input id="e_data_compra" name="data_compra" type="date" />
+        </div>
+        <div class="field">
+          <label for="e_forma_pagamento">Forma de pagamento</label>
+          <input id="e_forma_pagamento" name="forma_pagamento" type="text" />
+        </div>
+
+        <div class="field">
+          <label for="e_parcelas_total">Total de parcelas</label>
+          <input id="e_parcelas_total" name="parcelas_total" type="number" min="1" />
+        </div>
+        <div class="field">
+          <label for="e_parcela_atual">Parcela atual</label>
+          <input id="e_parcela_atual" name="parcela_atual" type="number" min="1" />
+        </div>
+        <div class="field">
+          <label for="e_categoria">Categoria</label>
+          <input id="e_categoria" name="categoria" type="text" />
+        </div>
+        <div class="field">
+          <label for="e_sub_categoria">Subcategoria</label>
+          <input id="e_sub_categoria" name="sub_categoria" type="text" />
+        </div>
+
+        <div class="field span-2">
+          <label for="e_descricao">Descrição</label>
+          <input id="e_descricao" name="descricao" type="text" />
+        </div>
+        <div class="field">
+          <label for="e_data_pagamento">Data de pagamento</label>
+          <input id="e_data_pagamento" name="data_pagamento" type="date" />
+        </div>
+        <div class="field">
+          <label for="e_valor">Valor (R$)</label>
+          <input id="e_valor" name="valor" type="number" step="0.01" />
+        </div>
+
+        <div class="field span-2">
+          <label for="e_confirmacao">Confirmação</label>
+          <input id="e_confirmacao" name="confirmacao" type="text" list="conf-list" />
+        </div>
+
+        <div class="form-actions">
+          <button type="submit" class="btn-primary">Salvar alterações</button>
+          <button type="button" class="btn-ghost" id="cancel-edit">Cancelar</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="config.js"></script>
+  <script src="app.js"></script>
 </body>
 </html>
