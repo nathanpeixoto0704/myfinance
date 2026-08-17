@@ -12,6 +12,18 @@ const FIELDS = [
   "descricao", "data_pagamento", "valor", "confirmacao"
 ];
 
+// Valores aceitos para os campos com opções fixas
+const ENUMS = {
+  conta: ["Nubank", "Itaú", "Alelo", "Carteira"],
+  tipo: ["Receita", "Despesa"],
+  forma_pagamento: ["Crédito", "Pix", "Débito", "Transferência"],
+  confirmacao: ["Confirmado", "Pendente"],
+};
+
+const REQUIRED_FIELDS = [
+  "conta", "tipo", "data_compra", "forma_pagamento", "descricao", "valor", "confirmacao"
+];
+
 function init() {
   const configOk =
     typeof SUPABASE_URL === "string" &&
@@ -31,6 +43,7 @@ function init() {
   document.getElementById("edit-form").addEventListener("submit", handleUpdate);
   document.getElementById("cancel-edit").addEventListener("click", closeModal);
   document.getElementById("search-input").addEventListener("input", renderTable);
+  document.getElementById("filter-tipo").addEventListener("change", renderTable);
 
   loadRecords();
 }
@@ -54,20 +67,28 @@ async function loadRecords() {
 }
 
 function renderTotal() {
-  const total = allRecords.reduce((sum, r) => sum + (Number(r.valor) || 0), 0);
+  const total = allRecords.reduce((sum, r) => {
+    const val = Number(r.valor) || 0;
+    return sum + (r.tipo === "Despesa" ? -val : val);
+  }, 0);
   document.getElementById("total-amount").textContent = formatMoney(total);
 }
 
 function renderTable() {
   const term = document.getElementById("search-input").value.trim().toLowerCase();
+  const tipoFilter = document.getElementById("filter-tipo").value;
   const tbody = document.getElementById("table-body");
   tbody.innerHTML = "";
 
-  const filtered = !term
-    ? allRecords
-    : allRecords.filter((r) =>
-        FIELDS.some((f) => String(r[f] ?? "").toLowerCase().includes(term))
-      );
+  let filtered = allRecords;
+  if (tipoFilter) {
+    filtered = filtered.filter((r) => r.tipo === tipoFilter);
+  }
+  if (term) {
+    filtered = filtered.filter((r) =>
+      FIELDS.some((f) => String(r[f] ?? "").toLowerCase().includes(term))
+    );
+  }
 
   if (filtered.length === 0) {
     document.getElementById("empty-state").hidden = false;
@@ -76,20 +97,21 @@ function renderTable() {
   document.getElementById("empty-state").hidden = true;
 
   for (const r of filtered) {
+    const isExpense = r.tipo === "Despesa";
     const tr = document.createElement("tr");
     tr.innerHTML = `
-      <td>${escapeHtml(r.conta ?? "")}</td>
-      <td>${escapeHtml(r.tipo ?? "")}</td>
-      <td>${formatDate(r.data_compra)}</td>
-      <td>${escapeHtml(r.forma_pagamento ?? "")}</td>
-      <td class="num">${r.parcela_atual ?? "-"}/${r.parcelas_total ?? "-"}</td>
-      <td>${escapeHtml(r.categoria ?? "")}</td>
-      <td>${escapeHtml(r.sub_categoria ?? "")}</td>
-      <td>${escapeHtml(r.descricao ?? "")}</td>
-      <td>${formatDate(r.data_pagamento)}</td>
-      <td class="money">${formatMoney(r.valor)}</td>
-      <td>${statusBadge(r.confirmacao)}</td>
-      <td>
+      <td data-label="Conta">${escapeHtml(r.conta ?? "")}</td>
+      <td data-label="Tipo">${tipoBadge(r.tipo)}</td>
+      <td data-label="Data compra">${formatDate(r.data_compra)}</td>
+      <td data-label="Pagamento">${escapeHtml(r.forma_pagamento ?? "")}</td>
+      <td class="num" data-label="Parcela">${r.parcela_atual ?? "-"}/${r.parcelas_total ?? "-"}</td>
+      <td data-label="Categoria">${escapeHtml(r.categoria ?? "")}</td>
+      <td data-label="Subcategoria">${escapeHtml(r.sub_categoria ?? "")}</td>
+      <td data-label="Descrição">${escapeHtml(r.descricao ?? "")}</td>
+      <td data-label="Data pagto.">${formatDate(r.data_pagamento)}</td>
+      <td class="money ${isExpense ? "expense" : "income"}" data-label="Valor">${isExpense ? "-" : ""}${formatMoney(r.valor)}</td>
+      <td data-label="Confirmação">${statusBadge(r.confirmacao)}</td>
+      <td data-label="Ações">
         <div class="row-actions">
           <button class="btn-edit" data-id="${r.id}">Editar</button>
           <button class="btn-danger" data-id="${r.id}">Excluir</button>
@@ -104,7 +126,7 @@ function renderTable() {
 
 function statusBadge(value) {
   const v = (value || "").toLowerCase();
-  if (v.includes("confirm") || v.includes("pago")) {
+  if (v.includes("confirm")) {
     return `<span class="badge ok">${escapeHtml(value)}</span>`;
   }
   if (v.includes("pend")) {
@@ -113,10 +135,93 @@ function statusBadge(value) {
   return `<span class="badge neutral">${escapeHtml(value || "-")}</span>`;
 }
 
+function tipoBadge(value) {
+  if (value === "Receita") return `<span class="badge income">Receita</span>`;
+  if (value === "Despesa") return `<span class="badge expense">Despesa</span>`;
+  return `<span class="badge neutral">${escapeHtml(value || "-")}</span>`;
+}
+
+// ---------- VALIDATION ----------
+function validateRecord(payload) {
+  const errors = {};
+
+  for (const field of REQUIRED_FIELDS) {
+    const val = payload[field];
+    if (val === null || val === undefined || val === "") {
+      errors[field] = "Campo obrigatório.";
+    }
+  }
+
+  for (const field of Object.keys(ENUMS)) {
+    const val = payload[field];
+    if (val && !ENUMS[field].includes(val)) {
+      errors[field] = "Selecione uma opção válida.";
+    }
+  }
+
+  if (payload.valor !== null && payload.valor !== undefined) {
+    if (isNaN(payload.valor) || payload.valor <= 0) {
+      errors.valor = "Informe um valor maior que zero.";
+    }
+  }
+
+  if (payload.parcelas_total !== null && payload.parcelas_total !== undefined) {
+    if (isNaN(payload.parcelas_total) || payload.parcelas_total < 1) {
+      errors.parcelas_total = "Deve ser 1 ou mais.";
+    }
+  }
+
+  if (payload.parcela_atual !== null && payload.parcela_atual !== undefined) {
+    if (isNaN(payload.parcela_atual) || payload.parcela_atual < 1) {
+      errors.parcela_atual = "Deve ser 1 ou mais.";
+    }
+  }
+
+  if (
+    payload.parcelas_total !== null && payload.parcelas_total !== undefined &&
+    payload.parcela_atual !== null && payload.parcela_atual !== undefined &&
+    payload.parcela_atual > payload.parcelas_total
+  ) {
+    errors.parcela_atual = "Não pode ser maior que o total de parcelas.";
+  }
+
+  return errors;
+}
+
+function clearErrors(formId) {
+  const form = document.getElementById(formId);
+  form.querySelectorAll(".field-error").forEach((el) => (el.textContent = ""));
+  form.querySelectorAll(".field.has-error").forEach((el) => el.classList.remove("has-error"));
+}
+
+function showErrors(formId, errors) {
+  const form = document.getElementById(formId);
+  let firstInvalid = null;
+  for (const [field, message] of Object.entries(errors)) {
+    const errorEl = form.querySelector(`[data-error-for="${field}"]`);
+    if (errorEl) errorEl.textContent = message;
+    const fieldEl = form.elements[field];
+    if (fieldEl) {
+      fieldEl.closest(".field")?.classList.add("has-error");
+      if (!firstInvalid) firstInvalid = fieldEl;
+    }
+  }
+  if (firstInvalid) firstInvalid.focus();
+}
+
 // ---------- CREATE ----------
 async function handleCreate(e) {
   e.preventDefault();
+  clearErrors("record-form");
+
   const payload = collectFormData("record-form");
+  const errors = validateRecord(payload);
+
+  if (Object.keys(errors).length > 0) {
+    showErrors("record-form", errors);
+    setStatus("Verifique os campos destacados.", true);
+    return;
+  }
 
   setStatus("Salvando...");
   const { error } = await supabaseClient.from(TABLE_NAME).insert([payload]);
@@ -134,6 +239,7 @@ async function handleCreate(e) {
 // ---------- UPDATE ----------
 function openEditModal(record) {
   editingId = record.id;
+  clearErrors("edit-form");
   const form = document.getElementById("edit-form");
   for (const f of FIELDS) {
     if (form.elements[f]) form.elements[f].value = record[f] ?? "";
@@ -150,7 +256,16 @@ async function handleUpdate(e) {
   e.preventDefault();
   if (editingId == null) return;
 
+  clearErrors("edit-form");
   const payload = collectFormData("edit-form");
+  const errors = validateRecord(payload);
+
+  if (Object.keys(errors).length > 0) {
+    showErrors("edit-form", errors);
+    setStatus("Verifique os campos destacados.", true);
+    return;
+  }
+
   setStatus("Atualizando...");
 
   const { error } = await supabaseClient
@@ -225,7 +340,7 @@ function escapeHtml(str) {
 function setStatus(msg, isError) {
   const el = document.getElementById("form-status");
   el.textContent = msg;
-  el.style.color = isError ? "#A3402F" : "";
+  el.classList.toggle("is-error", !!isError);
 }
 
 document.addEventListener("DOMContentLoaded", init);

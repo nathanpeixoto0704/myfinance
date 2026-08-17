@@ -3,14 +3,14 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Livro de movimentacoes</title>
+<title>Livro de movimentações</title>
 <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
   <div class="wrap">
     <header class="top">
       <div>
-        <h1>Livro de movimentacoes</h1>
+        <h1>Livro de movimentações</h1>
         <p>Controle de gastos por conta, cartão e parcela</p>
       </div>
       <div class="ledger-total">
@@ -28,37 +28,56 @@
     <div id="app-content">
       <section class="card">
         <h2>Novo registro <span class="tag">insert</span></h2>
-        <form id="record-form">
+        <form id="record-form" novalidate>
           <div class="field">
             <label for="conta">Conta</label>
-            <input id="conta" name="conta" type="text" placeholder="Ex: Nubank" required />
+            <select id="conta" name="conta" required>
+              <option value="" disabled selected>Selecione</option>
+              <option value="Nubank">Nubank</option>
+              <option value="Itaú">Itaú</option>
+              <option value="Alelo">Alelo</option>
+              <option value="Carteira">Carteira</option>
+            </select>
+            <span class="field-error" data-error-for="conta"></span>
           </div>
+
           <div class="field">
             <label for="tipo">Tipo</label>
-            <input id="tipo" name="tipo" type="text" placeholder="Ex: Crédito, Débito, Pix" list="tipo-list" />
-            <datalist id="tipo-list">
-              <option value="Crédito"></option>
-              <option value="Débito"></option>
-              <option value="Pix"></option>
-              <option value="Boleto"></option>
-            </datalist>
+            <select id="tipo" name="tipo" required>
+              <option value="" disabled selected>Selecione</option>
+              <option value="Receita">Receita</option>
+              <option value="Despesa">Despesa</option>
+            </select>
+            <span class="field-error" data-error-for="tipo"></span>
           </div>
+
           <div class="field">
             <label for="data_compra">Data da compra</label>
-            <input id="data_compra" name="data_compra" type="date" />
+            <input id="data_compra" name="data_compra" type="date" required />
+            <span class="field-error" data-error-for="data_compra"></span>
           </div>
+
           <div class="field">
             <label for="forma_pagamento">Forma de pagamento</label>
-            <input id="forma_pagamento" name="forma_pagamento" type="text" placeholder="Ex: Cartão final 1234" />
+            <select id="forma_pagamento" name="forma_pagamento" required>
+              <option value="" disabled selected>Selecione</option>
+              <option value="Crédito">Crédito</option>
+              <option value="Pix">Pix</option>
+              <option value="Débito">Débito</option>
+              <option value="Transferência">Transferência</option>
+            </select>
+            <span class="field-error" data-error-for="forma_pagamento"></span>
           </div>
 
           <div class="field">
             <label for="parcelas_total">Total de parcelas</label>
-            <input id="parcelas_total" name="parcelas_total" type="number" min="1" placeholder="1" />
+            <input id="parcelas_total" name="parcelas_total" type="number" min="1" step="1" placeholder="1" />
+            <span class="field-error" data-error-for="parcelas_total"></span>
           </div>
           <div class="field">
             <label for="parcela_atual">Parcela atual</label>
-            <input id="parcela_atual" name="parcela_atual" type="number" min="1" placeholder="1" />
+            <input id="parcela_atual" name="parcela_atual" type="number" min="1" step="1" placeholder="1" />
+            <span class="field-error" data-error-for="parcela_atual"></span>
           </div>
           <div class="field">
             <label for="categoria">Categoria</label>
@@ -71,7 +90,8 @@
 
           <div class="field span-2">
             <label for="descricao">Descrição</label>
-            <input id="descricao" name="descricao" type="text" placeholder="Ex: Jantar com a família" />
+            <input id="descricao" name="descricao" type="text" placeholder="Ex: Jantar com a família" required />
+            <span class="field-error" data-error-for="descricao"></span>
           </div>
           <div class="field">
             <label for="data_pagamento">Data de pagamento</label>
@@ -79,16 +99,18 @@
           </div>
           <div class="field">
             <label for="valor">Valor (R$)</label>
-            <input id="valor" name="valor" type="number" step="0.01" placeholder="0.00" />
+            <input id="valor" name="valor" type="number" step="0.01" min="0.01" placeholder="0,00" required />
+            <span class="field-error" data-error-for="valor"></span>
           </div>
 
           <div class="field span-2">
             <label for="confirmacao">Confirmação</label>
-            <input id="confirmacao" name="confirmacao" type="text" placeholder="Confirmado / Pendente" list="conf-list" />
-            <datalist id="conf-list">
-              <option value="Confirmado"></option>
-              <option value="Pendente"></option>
-            </datalist>
+            <select id="confirmacao" name="confirmacao" required>
+              <option value="" disabled selected>Selecione</option>
+              <option value="Confirmado">Confirmado</option>
+              <option value="Pendente">Pendente</option>
+            </select>
+            <span class="field-error" data-error-for="confirmacao"></span>
           </div>
 
           <div class="form-actions">
@@ -100,8 +122,15 @@
 
       <section>
         <div class="table-toolbar">
-          <h2 style="font-family:'Fraunces',serif; font-size:19px; margin:0;">Registros</h2>
-          <input type="search" id="search-input" placeholder="Buscar em qualquer campo..." />
+          <h2 class="section-title">Registros</h2>
+          <div class="toolbar-controls">
+            <select id="filter-tipo" class="filter-select">
+              <option value="">Todos os tipos</option>
+              <option value="Receita">Receita</option>
+              <option value="Despesa">Despesa</option>
+            </select>
+            <input type="search" id="search-input" placeholder="Buscar em qualquer campo..." />
+          </div>
         </div>
 
         <div class="table-scroll">
@@ -134,31 +163,53 @@
   <div class="modal-overlay" id="modal-overlay" hidden>
     <div class="modal">
       <h2>Editar registro</h2>
-      <form id="edit-form">
+      <form id="edit-form" novalidate>
         <div class="field">
           <label for="e_conta">Conta</label>
-          <input id="e_conta" name="conta" type="text" required />
+          <select id="e_conta" name="conta" required>
+            <option value="" disabled>Selecione</option>
+            <option value="Nubank">Nubank</option>
+            <option value="Itaú">Itaú</option>
+            <option value="Alelo">Alelo</option>
+            <option value="Carteira">Carteira</option>
+          </select>
+          <span class="field-error" data-error-for="conta"></span>
         </div>
         <div class="field">
           <label for="e_tipo">Tipo</label>
-          <input id="e_tipo" name="tipo" type="text" />
+          <select id="e_tipo" name="tipo" required>
+            <option value="" disabled>Selecione</option>
+            <option value="Receita">Receita</option>
+            <option value="Despesa">Despesa</option>
+          </select>
+          <span class="field-error" data-error-for="tipo"></span>
         </div>
         <div class="field">
           <label for="e_data_compra">Data da compra</label>
-          <input id="e_data_compra" name="data_compra" type="date" />
+          <input id="e_data_compra" name="data_compra" type="date" required />
+          <span class="field-error" data-error-for="data_compra"></span>
         </div>
         <div class="field">
           <label for="e_forma_pagamento">Forma de pagamento</label>
-          <input id="e_forma_pagamento" name="forma_pagamento" type="text" />
+          <select id="e_forma_pagamento" name="forma_pagamento" required>
+            <option value="" disabled>Selecione</option>
+            <option value="Crédito">Crédito</option>
+            <option value="Pix">Pix</option>
+            <option value="Débito">Débito</option>
+            <option value="Transferência">Transferência</option>
+          </select>
+          <span class="field-error" data-error-for="forma_pagamento"></span>
         </div>
 
         <div class="field">
           <label for="e_parcelas_total">Total de parcelas</label>
-          <input id="e_parcelas_total" name="parcelas_total" type="number" min="1" />
+          <input id="e_parcelas_total" name="parcelas_total" type="number" min="1" step="1" />
+          <span class="field-error" data-error-for="parcelas_total"></span>
         </div>
         <div class="field">
           <label for="e_parcela_atual">Parcela atual</label>
-          <input id="e_parcela_atual" name="parcela_atual" type="number" min="1" />
+          <input id="e_parcela_atual" name="parcela_atual" type="number" min="1" step="1" />
+          <span class="field-error" data-error-for="parcela_atual"></span>
         </div>
         <div class="field">
           <label for="e_categoria">Categoria</label>
@@ -171,7 +222,8 @@
 
         <div class="field span-2">
           <label for="e_descricao">Descrição</label>
-          <input id="e_descricao" name="descricao" type="text" />
+          <input id="e_descricao" name="descricao" type="text" required />
+          <span class="field-error" data-error-for="descricao"></span>
         </div>
         <div class="field">
           <label for="e_data_pagamento">Data de pagamento</label>
@@ -179,12 +231,18 @@
         </div>
         <div class="field">
           <label for="e_valor">Valor (R$)</label>
-          <input id="e_valor" name="valor" type="number" step="0.01" />
+          <input id="e_valor" name="valor" type="number" step="0.01" min="0.01" required />
+          <span class="field-error" data-error-for="valor"></span>
         </div>
 
         <div class="field span-2">
           <label for="e_confirmacao">Confirmação</label>
-          <input id="e_confirmacao" name="confirmacao" type="text" list="conf-list" />
+          <select id="e_confirmacao" name="confirmacao" required>
+            <option value="" disabled>Selecione</option>
+            <option value="Confirmado">Confirmado</option>
+            <option value="Pendente">Pendente</option>
+          </select>
+          <span class="field-error" data-error-for="confirmacao"></span>
         </div>
 
         <div class="form-actions">
