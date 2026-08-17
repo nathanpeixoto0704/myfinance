@@ -1,5 +1,5 @@
 // ============================================================
-// App de controle de compras — Supabase CRUD
+// App de controle de movimentacoes — Supabase CRUD
 // ============================================================
 
 let supabaseClient = null;
