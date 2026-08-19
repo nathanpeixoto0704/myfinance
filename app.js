@@ -45,6 +45,14 @@ function init() {
   document.getElementById("search-input").addEventListener("input", renderTable);
   document.getElementById("filter-tipo").addEventListener("change", renderTable);
 
+  // Fecha o modal ao clicar fora dele ou pressionar Esc
+  document.getElementById("modal-overlay").addEventListener("click", (e) => {
+    if (e.target.id === "modal-overlay") closeModal();
+  });
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape" && editingId !== null) closeModal();
+  });
+
   loadRecords();
 }
 
@@ -71,7 +79,10 @@ function renderTotal() {
     const val = Number(r.valor) || 0;
     return sum + (r.tipo === "Despesa" ? -val : val);
   }, 0);
-  document.getElementById("total-amount").textContent = formatMoney(total);
+  const el = document.getElementById("total-amount");
+  el.textContent = formatMoney(total);
+  el.classList.toggle("negative", total < 0);
+  el.classList.toggle("positive", total > 0);
 }
 
 function renderTable() {
@@ -99,14 +110,15 @@ function renderTable() {
   for (const r of filtered) {
     const isExpense = r.tipo === "Despesa";
     const tr = document.createElement("tr");
+    tr.dataset.tipo = r.tipo || "";
     tr.innerHTML = `
       <td data-label="Conta">${escapeHtml(r.conta ?? "")}</td>
       <td data-label="Tipo">${tipoBadge(r.tipo)}</td>
       <td data-label="Data compra">${formatDate(r.data_compra)}</td>
       <td data-label="Pagamento">${escapeHtml(r.forma_pagamento ?? "")}</td>
       <td class="num" data-label="Parcela">${r.parcela_atual ?? "-"}/${r.parcelas_total ?? "-"}</td>
-      <td data-label="Categoria">${escapeHtml(r.categoria ?? "")}</td>
-      <td data-label="Subcategoria">${escapeHtml(r.sub_categoria ?? "")}</td>
+      <td data-label="Categoria">${escapeHtml(r.categoria ?? "") || "—"}</td>
+      <td data-label="Subcategoria">${escapeHtml(r.sub_categoria ?? "") || "—"}</td>
       <td data-label="Descrição">${escapeHtml(r.descricao ?? "")}</td>
       <td data-label="Data pagto.">${formatDate(r.data_pagamento)}</td>
       <td class="money ${isExpense ? "expense" : "income"}" data-label="Valor">${isExpense ? "-" : ""}${formatMoney(r.valor)}</td>
@@ -126,19 +138,16 @@ function renderTable() {
 
 function statusBadge(value) {
   const v = (value || "").toLowerCase();
-  if (v.includes("confirm")) {
-    return `<span class="badge ok">${escapeHtml(value)}</span>`;
-  }
-  if (v.includes("pend")) {
-    return `<span class="badge pending">${escapeHtml(value)}</span>`;
-  }
-  return `<span class="badge neutral">${escapeHtml(value || "-")}</span>`;
+  let cls = "pill-neutral";
+  if (v.includes("confirm")) cls = "pill-confirmado";
+  else if (v.includes("pend")) cls = "pill-pendente";
+  return `<span class="pill ${cls}">${escapeHtml(value || "-")}</span>`;
 }
 
 function tipoBadge(value) {
-  if (value === "Receita") return `<span class="badge income">Receita</span>`;
-  if (value === "Despesa") return `<span class="badge expense">Despesa</span>`;
-  return `<span class="badge neutral">${escapeHtml(value || "-")}</span>`;
+  if (value === "Receita") return `<span class="pill pill-income">Receita</span>`;
+  if (value === "Despesa") return `<span class="pill pill-expense">Despesa</span>`;
+  return `<span class="pill pill-neutral">${escapeHtml(value || "-")}</span>`;
 }
 
 // ---------- VALIDATION ----------
@@ -245,11 +254,21 @@ function openEditModal(record) {
     if (form.elements[f]) form.elements[f].value = record[f] ?? "";
   }
   document.getElementById("modal-overlay").hidden = false;
+  // Força reflow antes de adicionar a classe, garantindo que a transição rode
+  void document.getElementById("modal-overlay").offsetWidth;
+  document.getElementById("modal-overlay").classList.add("is-open");
+  document.body.classList.add("modal-open");
 }
 
 function closeModal() {
   editingId = null;
-  document.getElementById("modal-overlay").hidden = true;
+  const overlay = document.getElementById("modal-overlay");
+  overlay.classList.remove("is-open");
+  document.body.classList.remove("modal-open");
+  // Aguarda a transição de saída terminar antes de remover do fluxo
+  setTimeout(() => {
+    if (!overlay.classList.contains("is-open")) overlay.hidden = true;
+  }, 280);
 }
 
 async function handleUpdate(e) {
