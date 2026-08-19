@@ -2,20 +2,23 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
 <title>Livro de movimentações</title>
 <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
   <div class="wrap">
+
     <header class="top">
-      <div>
-        <h1>Livro de movimentações</h1>
-        <p>Controle de gastos por conta, cartão e parcela</p>
-      </div>
-      <div class="ledger-total">
-        <span class="label">Total lançado</span>
-        <span class="amount" id="total-amount">R$ 0,00</span>
+      <div class="top-inner">
+        <div class="top-title">
+          <h1>Livro de movimentações</h1>
+          <p>Controle de gastos por conta, cartão e parcela</p>
+        </div>
+        <div class="ledger-total">
+          <span class="label">Total lançado</span>
+          <span class="amount" id="total-amount">R$ 0,00</span>
+        </div>
       </div>
     </header>
 
@@ -25,92 +28,126 @@
       Supabase (Project Settings → API). Veja o <code>README.md</code> para o passo a passo completo.
     </div>
 
-    <div id="app-content">
-      <section class="card">
-        <h2>Novo registro <span class="tag">insert</span></h2>
+    <main id="app-content">
+
+      <!-- Novo registro -->
+      <section class="card form-card">
+        <div class="card-head">
+          <h2>Novo registro</h2>
+          <span class="tag">insert</span>
+        </div>
+
         <form id="record-form" novalidate>
-          <div class="field">
-            <label for="conta">Conta</label>
-            <select id="conta" name="conta" required>
-              <option value="" disabled selected>Selecione</option>
-              <option value="Nubank">Nubank</option>
-              <option value="Itaú">Itaú</option>
-              <option value="Alelo">Alelo</option>
-              <option value="Carteira">Carteira</option>
-            </select>
-            <span class="field-error" data-error-for="conta"></span>
+
+          <div class="group">
+            <span class="group-label">Conta &amp; tipo</span>
+            <div class="group-body grid-2">
+              <div class="field">
+                <label for="conta">Conta</label>
+                <select id="conta" name="conta" required>
+                  <option value="" disabled selected>Selecione</option>
+                  <option value="Nubank">Nubank</option>
+                  <option value="Itaú">Itaú</option>
+                  <option value="Alelo">Alelo</option>
+                  <option value="Carteira">Carteira</option>
+                </select>
+                <span class="field-error" data-error-for="conta"></span>
+              </div>
+
+              <div class="field">
+                <label for="tipo">Tipo</label>
+                <select id="tipo" name="tipo" required>
+                  <option value="" disabled selected>Selecione</option>
+                  <option value="Receita">Receita</option>
+                  <option value="Despesa">Despesa</option>
+                </select>
+                <span class="field-error" data-error-for="tipo"></span>
+              </div>
+            </div>
           </div>
 
-          <div class="field">
-            <label for="tipo">Tipo</label>
-            <select id="tipo" name="tipo" required>
-              <option value="" disabled selected>Selecione</option>
-              <option value="Receita">Receita</option>
-              <option value="Despesa">Despesa</option>
-            </select>
-            <span class="field-error" data-error-for="tipo"></span>
+          <div class="group">
+            <span class="group-label">Datas</span>
+            <div class="group-body grid-2">
+              <div class="field">
+                <label for="data_compra">Data da compra</label>
+                <input id="data_compra" name="data_compra" type="date" required />
+                <span class="field-error" data-error-for="data_compra"></span>
+              </div>
+              <div class="field">
+                <label for="data_pagamento">Data de pagamento</label>
+                <input id="data_pagamento" name="data_pagamento" type="date" />
+              </div>
+            </div>
           </div>
 
-          <div class="field">
-            <label for="data_compra">Data da compra</label>
-            <input id="data_compra" name="data_compra" type="date" required />
-            <span class="field-error" data-error-for="data_compra"></span>
+          <div class="group">
+            <span class="group-label">Pagamento &amp; parcelas</span>
+            <div class="group-body grid-3">
+              <div class="field">
+                <label for="forma_pagamento">Forma de pagamento</label>
+                <select id="forma_pagamento" name="forma_pagamento" required>
+                  <option value="" disabled selected>Selecione</option>
+                  <option value="Crédito">Crédito</option>
+                  <option value="Pix">Pix</option>
+                  <option value="Débito">Débito</option>
+                  <option value="Transferência">Transferência</option>
+                </select>
+                <span class="field-error" data-error-for="forma_pagamento"></span>
+              </div>
+              <div class="field">
+                <label for="parcelas_total">Total de parcelas</label>
+                <input id="parcelas_total" name="parcelas_total" type="number" min="1" step="1" placeholder="1" />
+                <span class="field-error" data-error-for="parcelas_total"></span>
+              </div>
+              <div class="field">
+                <label for="parcela_atual">Parcela atual</label>
+                <input id="parcela_atual" name="parcela_atual" type="number" min="1" step="1" placeholder="1" />
+                <span class="field-error" data-error-for="parcela_atual"></span>
+              </div>
+            </div>
           </div>
 
-          <div class="field">
-            <label for="forma_pagamento">Forma de pagamento</label>
-            <select id="forma_pagamento" name="forma_pagamento" required>
-              <option value="" disabled selected>Selecione</option>
-              <option value="Crédito">Crédito</option>
-              <option value="Pix">Pix</option>
-              <option value="Débito">Débito</option>
-              <option value="Transferência">Transferência</option>
-            </select>
-            <span class="field-error" data-error-for="forma_pagamento"></span>
+          <div class="group">
+            <span class="group-label">Categoria</span>
+            <div class="group-body grid-2">
+              <div class="field">
+                <label for="categoria">Categoria</label>
+                <input id="categoria" name="categoria" type="text" placeholder="Ex: Alimentação" />
+              </div>
+              <div class="field">
+                <label for="sub_categoria">Subcategoria</label>
+                <input id="sub_categoria" name="sub_categoria" type="text" placeholder="Ex: Restaurante" />
+              </div>
+            </div>
           </div>
 
-          <div class="field">
-            <label for="parcelas_total">Total de parcelas</label>
-            <input id="parcelas_total" name="parcelas_total" type="number" min="1" step="1" placeholder="1" />
-            <span class="field-error" data-error-for="parcelas_total"></span>
-          </div>
-          <div class="field">
-            <label for="parcela_atual">Parcela atual</label>
-            <input id="parcela_atual" name="parcela_atual" type="number" min="1" step="1" placeholder="1" />
-            <span class="field-error" data-error-for="parcela_atual"></span>
-          </div>
-          <div class="field">
-            <label for="categoria">Categoria</label>
-            <input id="categoria" name="categoria" type="text" placeholder="Ex: Alimentação" />
-          </div>
-          <div class="field">
-            <label for="sub_categoria">Subcategoria</label>
-            <input id="sub_categoria" name="sub_categoria" type="text" placeholder="Ex: Restaurante" />
-          </div>
-
-          <div class="field span-2">
-            <label for="descricao">Descrição</label>
-            <input id="descricao" name="descricao" type="text" placeholder="Ex: Jantar com a família" required />
-            <span class="field-error" data-error-for="descricao"></span>
-          </div>
-          <div class="field">
-            <label for="data_pagamento">Data de pagamento</label>
-            <input id="data_pagamento" name="data_pagamento" type="date" />
-          </div>
-          <div class="field">
-            <label for="valor">Valor (R$)</label>
-            <input id="valor" name="valor" type="number" step="0.01" min="0.01" placeholder="0,00" required />
-            <span class="field-error" data-error-for="valor"></span>
-          </div>
-
-          <div class="field span-2">
-            <label for="confirmacao">Confirmação</label>
-            <select id="confirmacao" name="confirmacao" required>
-              <option value="" disabled selected>Selecione</option>
-              <option value="Confirmado">Confirmado</option>
-              <option value="Pendente">Pendente</option>
-            </select>
-            <span class="field-error" data-error-for="confirmacao"></span>
+          <div class="group">
+            <span class="group-label">Descrição &amp; valor</span>
+            <div class="group-body grid-2">
+              <div class="field span-2">
+                <label for="descricao">Descrição</label>
+                <input id="descricao" name="descricao" type="text" placeholder="Ex: Jantar com a família" required />
+                <span class="field-error" data-error-for="descricao"></span>
+              </div>
+              <div class="field">
+                <label for="valor">Valor (R$)</label>
+                <div class="money-input">
+                  <span class="prefix">R$</span>
+                  <input id="valor" name="valor" type="number" step="0.01" min="0.01" placeholder="0,00" required />
+                </div>
+                <span class="field-error" data-error-for="valor"></span>
+              </div>
+              <div class="field">
+                <label for="confirmacao">Confirmação</label>
+                <select id="confirmacao" name="confirmacao" required>
+                  <option value="" disabled selected>Selecione</option>
+                  <option value="Confirmado">Confirmado</option>
+                  <option value="Pendente">Pendente</option>
+                </select>
+                <span class="field-error" data-error-for="confirmacao"></span>
+              </div>
+            </div>
           </div>
 
           <div class="form-actions">
@@ -120,16 +157,31 @@
         </form>
       </section>
 
-      <section>
+      <!-- Registros -->
+      <section class="card table-card">
         <div class="table-toolbar">
           <h2 class="section-title">Registros</h2>
+
           <div class="toolbar-controls">
-            <select id="filter-tipo" class="filter-select">
+            <!-- Segmented control (drives the original #filter-tipo select) -->
+            <div class="segmented" id="tipo-segmented" role="tablist" aria-label="Filtrar por tipo">
+              <button type="button" class="segmented-btn is-active" data-value="" role="tab" aria-selected="true">Todos</button>
+              <button type="button" class="segmented-btn" data-value="Receita" role="tab" aria-selected="false">Receita</button>
+              <button type="button" class="segmented-btn" data-value="Despesa" role="tab" aria-selected="false">Despesa</button>
+              <span class="segmented-thumb" aria-hidden="true"></span>
+            </div>
+            <select id="filter-tipo" class="filter-select sr-only-select">
               <option value="">Todos os tipos</option>
               <option value="Receita">Receita</option>
               <option value="Despesa">Despesa</option>
             </select>
-            <input type="search" id="search-input" placeholder="Buscar em qualquer campo..." />
+
+            <div class="search-wrap">
+              <svg class="search-icon" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true">
+                <path fill="currentColor" d="M15.5 14h-.79l-.28-.27a6.47 6.47 0 0 0 1.57-4.23 6.5 6.5 0 1 0-6.5 6.5 6.47 6.47 0 0 0 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0A4.5 4.5 0 1 1 14 9.5 4.5 4.5 0 0 1 9.5 14"/>
+              </svg>
+              <input type="search" id="search-input" placeholder="Buscar em qualquer campo..." />
+            </div>
           </div>
         </div>
 
@@ -146,103 +198,138 @@
                 <th>Subcategoria</th>
                 <th>Descrição</th>
                 <th>Data pagto.</th>
-                <th>Valor</th>
+                <th class="th-right">Valor</th>
                 <th>Confirmação</th>
-                <th>Ações</th>
+                <th class="th-actions">Ações</th>
               </tr>
             </thead>
             <tbody id="table-body"></tbody>
           </table>
-          <div class="empty-state" id="empty-state" hidden>Nenhum registro encontrado.</div>
+          <div class="empty-state" id="empty-state" hidden>
+            <svg viewBox="0 0 24 24" width="28" height="28" aria-hidden="true">
+              <path fill="currentColor" d="M3 5h18v2H3zm2 4h14l-1.5 10h-11zM9 13h2v4H9zm4 0h2v4h-2z"/>
+            </svg>
+            <p>Nenhum registro encontrado.</p>
+          </div>
         </div>
       </section>
-    </div>
+    </main>
   </div>
 
   <!-- Modal de edição -->
   <div class="modal-overlay" id="modal-overlay" hidden>
     <div class="modal">
+      <div class="modal-grabber"></div>
       <h2>Editar registro</h2>
       <form id="edit-form" novalidate>
-        <div class="field">
-          <label for="e_conta">Conta</label>
-          <select id="e_conta" name="conta" required>
-            <option value="" disabled>Selecione</option>
-            <option value="Nubank">Nubank</option>
-            <option value="Itaú">Itaú</option>
-            <option value="Alelo">Alelo</option>
-            <option value="Carteira">Carteira</option>
-          </select>
-          <span class="field-error" data-error-for="conta"></span>
-        </div>
-        <div class="field">
-          <label for="e_tipo">Tipo</label>
-          <select id="e_tipo" name="tipo" required>
-            <option value="" disabled>Selecione</option>
-            <option value="Receita">Receita</option>
-            <option value="Despesa">Despesa</option>
-          </select>
-          <span class="field-error" data-error-for="tipo"></span>
-        </div>
-        <div class="field">
-          <label for="e_data_compra">Data da compra</label>
-          <input id="e_data_compra" name="data_compra" type="date" required />
-          <span class="field-error" data-error-for="data_compra"></span>
-        </div>
-        <div class="field">
-          <label for="e_forma_pagamento">Forma de pagamento</label>
-          <select id="e_forma_pagamento" name="forma_pagamento" required>
-            <option value="" disabled>Selecione</option>
-            <option value="Crédito">Crédito</option>
-            <option value="Pix">Pix</option>
-            <option value="Débito">Débito</option>
-            <option value="Transferência">Transferência</option>
-          </select>
-          <span class="field-error" data-error-for="forma_pagamento"></span>
+        <div class="group">
+          <span class="group-label">Conta &amp; tipo</span>
+          <div class="group-body grid-2">
+            <div class="field">
+              <label for="e_conta">Conta</label>
+              <select id="e_conta" name="conta" required>
+                <option value="" disabled>Selecione</option>
+                <option value="Nubank">Nubank</option>
+                <option value="Itaú">Itaú</option>
+                <option value="Alelo">Alelo</option>
+                <option value="Carteira">Carteira</option>
+              </select>
+              <span class="field-error" data-error-for="conta"></span>
+            </div>
+            <div class="field">
+              <label for="e_tipo">Tipo</label>
+              <select id="e_tipo" name="tipo" required>
+                <option value="" disabled>Selecione</option>
+                <option value="Receita">Receita</option>
+                <option value="Despesa">Despesa</option>
+              </select>
+              <span class="field-error" data-error-for="tipo"></span>
+            </div>
+          </div>
         </div>
 
-        <div class="field">
-          <label for="e_parcelas_total">Total de parcelas</label>
-          <input id="e_parcelas_total" name="parcelas_total" type="number" min="1" step="1" />
-          <span class="field-error" data-error-for="parcelas_total"></span>
-        </div>
-        <div class="field">
-          <label for="e_parcela_atual">Parcela atual</label>
-          <input id="e_parcela_atual" name="parcela_atual" type="number" min="1" step="1" />
-          <span class="field-error" data-error-for="parcela_atual"></span>
-        </div>
-        <div class="field">
-          <label for="e_categoria">Categoria</label>
-          <input id="e_categoria" name="categoria" type="text" />
-        </div>
-        <div class="field">
-          <label for="e_sub_categoria">Subcategoria</label>
-          <input id="e_sub_categoria" name="sub_categoria" type="text" />
+        <div class="group">
+          <span class="group-label">Datas</span>
+          <div class="group-body grid-2">
+            <div class="field">
+              <label for="e_data_compra">Data da compra</label>
+              <input id="e_data_compra" name="data_compra" type="date" required />
+              <span class="field-error" data-error-for="data_compra"></span>
+            </div>
+            <div class="field">
+              <label for="e_data_pagamento">Data de pagamento</label>
+              <input id="e_data_pagamento" name="data_pagamento" type="date" />
+            </div>
+          </div>
         </div>
 
-        <div class="field span-2">
-          <label for="e_descricao">Descrição</label>
-          <input id="e_descricao" name="descricao" type="text" required />
-          <span class="field-error" data-error-for="descricao"></span>
-        </div>
-        <div class="field">
-          <label for="e_data_pagamento">Data de pagamento</label>
-          <input id="e_data_pagamento" name="data_pagamento" type="date" />
-        </div>
-        <div class="field">
-          <label for="e_valor">Valor (R$)</label>
-          <input id="e_valor" name="valor" type="number" step="0.01" min="0.01" required />
-          <span class="field-error" data-error-for="valor"></span>
+        <div class="group">
+          <span class="group-label">Pagamento &amp; parcelas</span>
+          <div class="group-body grid-3">
+            <div class="field">
+              <label for="e_forma_pagamento">Forma de pagamento</label>
+              <select id="e_forma_pagamento" name="forma_pagamento" required>
+                <option value="" disabled>Selecione</option>
+                <option value="Crédito">Crédito</option>
+                <option value="Pix">Pix</option>
+                <option value="Débito">Débito</option>
+                <option value="Transferência">Transferência</option>
+              </select>
+              <span class="field-error" data-error-for="forma_pagamento"></span>
+            </div>
+            <div class="field">
+              <label for="e_parcelas_total">Total de parcelas</label>
+              <input id="e_parcelas_total" name="parcelas_total" type="number" min="1" step="1" />
+              <span class="field-error" data-error-for="parcelas_total"></span>
+            </div>
+            <div class="field">
+              <label for="e_parcela_atual">Parcela atual</label>
+              <input id="e_parcela_atual" name="parcela_atual" type="number" min="1" step="1" />
+              <span class="field-error" data-error-for="parcela_atual"></span>
+            </div>
+          </div>
         </div>
 
-        <div class="field span-2">
-          <label for="e_confirmacao">Confirmação</label>
-          <select id="e_confirmacao" name="confirmacao" required>
-            <option value="" disabled>Selecione</option>
-            <option value="Confirmado">Confirmado</option>
-            <option value="Pendente">Pendente</option>
-          </select>
-          <span class="field-error" data-error-for="confirmacao"></span>
+        <div class="group">
+          <span class="group-label">Categoria</span>
+          <div class="group-body grid-2">
+            <div class="field">
+              <label for="e_categoria">Categoria</label>
+              <input id="e_categoria" name="categoria" type="text" />
+            </div>
+            <div class="field">
+              <label for="e_sub_categoria">Subcategoria</label>
+              <input id="e_sub_categoria" name="sub_categoria" type="text" />
+            </div>
+          </div>
+        </div>
+
+        <div class="group">
+          <span class="group-label">Descrição &amp; valor</span>
+          <div class="group-body grid-2">
+            <div class="field span-2">
+              <label for="e_descricao">Descrição</label>
+              <input id="e_descricao" name="descricao" type="text" required />
+              <span class="field-error" data-error-for="descricao"></span>
+            </div>
+            <div class="field">
+              <label for="e_valor">Valor (R$)</label>
+              <div class="money-input">
+                <span class="prefix">R$</span>
+                <input id="e_valor" name="valor" type="number" step="0.01" min="0.01" required />
+              </div>
+              <span class="field-error" data-error-for="valor"></span>
+            </div>
+            <div class="field">
+              <label for="e_confirmacao">Confirmação</label>
+              <select id="e_confirmacao" name="confirmacao" required>
+                <option value="" disabled>Selecione</option>
+                <option value="Confirmado">Confirmado</option>
+                <option value="Pendente">Pendente</option>
+              </select>
+              <span class="field-error" data-error-for="confirmacao"></span>
+            </div>
+          </div>
         </div>
 
         <div class="form-actions">
@@ -252,6 +339,55 @@
       </form>
     </div>
   </div>
+
+  <script>
+    // Segmented control: purely presentational — mirrors clicks onto the
+    // original #filter-tipo select and dispatches a native "change" event,
+    // so app.js keeps working exactly as before with zero changes needed.
+    (function () {
+      var seg = document.getElementById('tipo-segmented');
+      var select = document.getElementById('filter-tipo');
+      if (!seg || !select) return;
+
+      var buttons = Array.prototype.slice.call(seg.querySelectorAll('.segmented-btn'));
+      var thumb = seg.querySelector('.segmented-thumb');
+
+      function moveThumb(btn) {
+        if (!thumb) return;
+        thumb.style.width = btn.offsetWidth + 'px';
+        thumb.style.transform = 'translateX(' + btn.offsetLeft + 'px)';
+      }
+
+      function setActive(btn, fromSelect) {
+        buttons.forEach(function (b) {
+          b.classList.toggle('is-active', b === btn);
+          b.setAttribute('aria-selected', b === btn ? 'true' : 'false');
+        });
+        moveThumb(btn);
+        if (!fromSelect) {
+          select.value = btn.dataset.value;
+          select.dispatchEvent(new Event('change', { bubbles: true }));
+        }
+      }
+
+      buttons.forEach(function (btn) {
+        btn.addEventListener('click', function () { setActive(btn, false); });
+      });
+
+      // Keep in sync if app.js (or anything else) changes the select programmatically
+      select.addEventListener('change', function () {
+        var match = buttons.find(function (b) { return b.dataset.value === select.value; });
+        if (match) setActive(match, true);
+      });
+
+      window.addEventListener('resize', function () {
+        var active = seg.querySelector('.segmented-btn.is-active');
+        if (active) moveThumb(active);
+      });
+
+      requestAnimationFrame(function () { moveThumb(buttons[0]); });
+    })();
+  </script>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="config.js"></script>
